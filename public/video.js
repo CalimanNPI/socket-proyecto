@@ -1,62 +1,25 @@
 const socket = io();
 
-var canvas = document.getElementById('preview');
-var context = canvas.getContext('2d');
-var video = document.getElementById('video');
-var estatus = document.getElementById('status');
-var btn = document.getElementById('btn');
+navigator.mediaDevices.getUserMedia({ audio: false, video: true }).then((stream) => {
 
+    var canvas = document.getElementById('preview');
+    var context = canvas.getContext('2d');
+    var video = document.getElementById('video');
 
-canvas.width = 512;
-canvas.height = 400;
+    context.width = 700;
+    context.height = 700;
 
-function estatus(msg) {
-    estatus.innerText = msg;
-}
+    video.srcObject = stream; //window.URL.createObjectURL(stream); 
+    
+    setInterval(() => {
+        context.drawImage(video, 0, 0, context.width, context.height);
+        socket.emit('stream',{
+            imagen: canvas.toDataURL('img/webp'),
+            id: socket.id
+        });
 
-function loadCamara(stream) {
-    video.srcObject = stream;
-    estatus('Camara bien');
-}
-
-function verVideo(video, context) {
-    alert('trasmitiendo');
-    context.drawImage(video, 0, 0, context.width, context.height);
-    socket.emit('stream', canvas.toDataURL('img/webp'));
-}
-
-
-
-btn.addEventListener('click', () => {
-    navigator.getUserMedia = (navigator.getUserMedia || navigator.getwebkitGetUserMedia || navigator.mozGetUserMedia);
-
-    if (navigator.getUserMedia) {
-        navigator.getUserMedia({ video: true }, loadCamara);
-    }
-
-    var intervalo = setInterval(() => {
-        verVideo(video, context);
-    }, 500);
-
-
-});
-
-//receptorg
-socket.on('stream', (imagen) => {
-    let img = document.getElementById('videio2');
-
-    img = imagen;
-});
-
-
-/**navigator.mediaDevices.getUserMedia({ audio: true, video: true }).then((stream) => {
-
-    console.log(stream)
-
-    let video = document.getElementById('video')
-
-    video.srcObject = stream
+    }, 0);
 
     video.onloadedmetadata = (ev) => video.play()
 
-}).catch((err) => console.log(err));**/
+}).catch((err) => console.log(err));
